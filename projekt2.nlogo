@@ -1,4 +1,4 @@
-turtles-own [energy reproduce-energy gender]
+turtles-own [energy reproduce-energy gender genotyp]
 breed [sheep a-sheep]
 breed [wolves wolf]
 
@@ -24,13 +24,29 @@ end
 
 to increase-reproduce-energy
   ask turtles[
-    set reproduce-energy (reproduce-energy + 1)]
+    set reproduce-energy (reproduce-energy + 1)
+    if genotyp = 1
+    [
+     set reproduce-energy (reproduce-energy + 1)
+    ]
+]
 end
 
 to move-turtles
   ask turtles [
     right random 360
+    ifelse genotyp = 4
+    [
+     let r random 100
+     if r > 50 [forward 1]
+    ]
+    [
     forward 1
+    if genotyp = 2
+    [
+     forward 1
+    ]
+    ]
     set energy (energy - 1)
   ]
 end
@@ -39,6 +55,8 @@ to eat-grass
   ask sheep [
     if pcolor = green [
       set pcolor brown
+
+      if genotyp = 3 [set energy (energy + (energy-from-grass))]
       set energy (energy + energy-from-grass)
     ]
     ifelse show-energy?
@@ -54,6 +72,12 @@ to catch-sheep
     [
       set energy energy - 20
       set reproduce-energy 5
+      set genotyp random 4
+      if genotyp = 1 [set color red]
+      if genotyp = 2 [set color blue]
+      if genotyp = 3 [set color pink]
+      if genotyp = 4 [set color orange]
+
       ifelse random 100 <= 50
       [ask prey [hatch 1 [
         set energy birth-energy
