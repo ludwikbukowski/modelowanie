@@ -22,6 +22,7 @@ to go
   ask dogs [catch-wolf-by-dog]
   increase-reproduce-energy
   check-death
+  find-reproducer
   regrow-grass
   tick
 end
@@ -171,6 +172,18 @@ to setup-patches
   ask patches [ set pcolor green ]
 end
 
+to find-reproducer
+  ask turtles [
+    let my-breed breed
+    let my-gender gender
+    let target min-one-of turtles with [breed = my-breed and gender != my-gender] [distance myself]
+    if target != nobody [
+      face target
+      forward 3
+    ]
+  ]
+end
+
 to setup-creatures
   setup-sheep
   setup-wolves
@@ -203,7 +216,7 @@ to setup-wolves
 
   create-wolves (number-of-wolves / 2) [
     set color white
-    set gender "male"
+    set gender "female"
     set energy birth-energy
   ]
 end
@@ -216,7 +229,7 @@ to setup-dogs
     set energy birth-energy
   ]
 
-  create-dogs (number-of-wolves / 2) [
+  create-dogs (number-of-dogs / 2) [
     set color pink
     set gender "female"
     set energy birth-energy
@@ -332,9 +345,9 @@ count patches with [pcolor = green]
 
 SWITCH
 19
-238
+268
 153
-271
+301
 show-energy?
 show-energy?
 1
@@ -342,10 +355,10 @@ show-energy?
 -1000
 
 PLOT
-4
-276
-204
-426
+3
+338
+203
+488
 Totals
 time
 totals
@@ -369,7 +382,7 @@ number-of-sheep
 number-of-sheep
 0
 300
-170.0
+201.0
 1
 1
 NIL
@@ -377,9 +390,9 @@ HORIZONTAL
 
 SLIDER
 5
-169
+199
 177
-202
+232
 energy-from-grass
 energy-from-grass
 0
@@ -392,14 +405,14 @@ HORIZONTAL
 
 SLIDER
 4
-204
+234
 176
-237
+267
 birth-energy
 birth-energy
 0
 100
-40.0
+80.0
 1
 1
 NIL
@@ -414,7 +427,7 @@ number-of-wolves
 number-of-wolves
 0
 300
-21.0
+9.0
 1
 1
 NIL
@@ -438,19 +451,39 @@ NIL
 1
 
 SLIDER
-718
-145
-890
-178
+3
+164
+175
+197
 number-of-dogs
 number-of-dogs
 0
 100
-90.0
+0.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+868
+28
+1068
+178
+Breeds
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"sheep" 1.0 0 -14439633 true "" "plot count sheep"
+"wolves" 1.0 0 -2674135 true "" "plot count wolves"
+"dogs" 1.0 0 -1184463 true "" "plot count dogs"
 
 @#$#@#$#@
 ## WHAT IS IT?
