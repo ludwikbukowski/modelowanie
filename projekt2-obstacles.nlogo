@@ -1,6 +1,7 @@
-turtles-own [energy reproduce-energy gender genotyp]
+turtles-own [energy reproduce-energy gender genotyp agresive]
 breed [sheep a-sheep]
 breed [wolves wolf]
+breed [dogs dog]
 
 to setup
   clear-all
@@ -12,10 +13,13 @@ end
 to go
   if ticks >= 500 [ stop ]
   move-turtles
-  eat-grass
+  ask sheep [eat-grass]
   ask sheep [catch-sheep]
   ask wolves [catch-wolf]
   ask wolves [eat-sheep]
+  ask dogs [eat-grass]
+  ask dogs [catch-dog]
+  ask dogs [catch-wolf-by-dog]
   increase-reproduce-energy
   check-death
   regrow-grass
@@ -53,7 +57,6 @@ to move-turtles
 end
 
 to eat-grass
-  ask sheep [
     if pcolor = green [
       set pcolor brown
 
@@ -63,7 +66,7 @@ to eat-grass
     ifelse show-energy?
       [ set label energy ]
       [ set label "" ]
-  ]
+
 end
 
 to catch-sheep
@@ -104,6 +107,44 @@ to catch-wolf
       ]
 end
 
+to catch-dog
+  let prey one-of dogs-here with [gender = "male" and reproduce-energy > 30 and energy > 10]
+  let predator one-of dogs-here with [gender = "female" and reproduce-energy > 30 and energy > 10]
+
+  if prey != nobody and predator != nobody
+    [
+      set energy energy - 20
+      set reproduce-energy 5
+      ifelse random 100 <= 50
+      [ask prey [hatch 1 [
+        set energy birth-energy
+       set reproduce-energy 0]]]
+      [ask predator [hatch 1 [ set energy birth-energy
+      set reproduce-energy 0]]]
+      ]
+
+end
+
+to catch-wolf-by-dog
+  let prey one-of wolves-here with [gender = "male" and reproduce-energy > 30 and energy > 10]
+  let predator one-of dogs-here with [gender = "female" and reproduce-energy > 30 and energy > 10]
+  if prey != nobody and predator != nobody
+    [
+      set energy energy - 20
+      set reproduce-energy 5
+      ifelse agresive > 30
+      [ask prey [hatch 1 [
+        set energy birth-energy
+        set agresive agresive - 10
+        set reproduce-energy 0]]]
+      [ask predator [hatch 1 [
+         set energy birth-energy
+        set agresive agresive - 10
+        set reproduce-energy 0]]
+      ]
+    ]
+end
+
 to eat-sheep
   let prey one-of sheep-here
   let predator one-of wolves-here
@@ -133,6 +174,7 @@ end
 to setup-creatures
   setup-sheep
   setup-wolves
+  setup-dogs
   ask turtles [ setxy random-xcor random-ycor ]
 end
 
@@ -162,6 +204,21 @@ to setup-wolves
   create-wolves (number-of-wolves / 2) [
     set color white
     set gender "male"
+    set energy birth-energy
+  ]
+end
+
+to setup-dogs
+  set-default-shape dogs "cow"
+  create-dogs (number-of-dogs / 2)[
+    set color yellow
+    set gender "male"
+    set energy birth-energy
+  ]
+
+  create-dogs (number-of-wolves / 2) [
+    set color pink
+    set gender "female"
     set energy birth-energy
   ]
 end
@@ -379,6 +436,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+718
+145
+890
+178
+number-of-dogs
+number-of-dogs
+0
+100
+90.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
