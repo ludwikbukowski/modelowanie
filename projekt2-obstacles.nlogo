@@ -1,10 +1,14 @@
 turtles-own [energy reproduce-energy gender genotyp agresive]
+globals [dog-killed wolf-dogged dog-born]
 breed [sheep a-sheep]
 breed [wolves wolf]
 breed [dogs dog]
 
 to setup
   clear-all
+  set dog-killed 0
+  set wolf-dogged 0
+  set dog-born 0
   setup-patches
   setup-creatures
   reset-ticks
@@ -17,6 +21,7 @@ to go
   ask sheep [catch-sheep]
   ask wolves [catch-wolf]
   ask wolves [eat-sheep]
+  ask wolves [catch-dog-by-wolf]
   ask dogs [eat-grass]
   ask dogs [catch-dog]
   ask dogs [catch-wolf-by-dog]
@@ -77,7 +82,7 @@ to catch-sheep
     [
       set energy energy - 20
       set reproduce-energy 5
-      set genotyp random 4
+      set genotyp random 5
       if genotyp = 1 [set color red]
       if genotyp = 2 [set color blue]
       if genotyp = 3 [set color pink]
@@ -109,31 +114,33 @@ to catch-wolf
 end
 
 to catch-dog
-  let prey one-of dogs-here with [gender = "male" and reproduce-energy > 30 and energy > 10]
+  let prey one-of dogs-here with [gender = "male" and energy > 10]
   let predator one-of dogs-here with [gender = "female" and reproduce-energy > 30 and energy > 10]
 
   if prey != nobody and predator != nobody
     [
+      set dog-born dog-born + 1
       set energy energy - 20
       set reproduce-energy 5
       ifelse random 100 <= 50
       [ask prey [hatch 1 [
-        set energy birth-energy
+        set energy birth-energy - 50
        set reproduce-energy 0]]]
-      [ask predator [hatch 1 [ set energy birth-energy
+      [ask predator [hatch 1 [ set energy birth-energy - 50
       set reproduce-energy 0]]]
       ]
 
 end
 
 to catch-wolf-by-dog
-  let prey one-of wolves-here with [gender = "male" and reproduce-energy > 30 and energy > 10]
-  let predator one-of dogs-here with [gender = "female" and reproduce-energy > 30 and energy > 10]
+  let prey one-of wolves-here with [gender = "female" and reproduce-energy > 30 and energy > 10]
+  let predator one-of dogs-here with [gender = "male" and reproduce-energy > 30 and energy > 10]
   if prey != nobody and predator != nobody
     [
+      set wolf-dogged wolf-dogged + 1
       set energy energy - 20
       set reproduce-energy 5
-      ifelse agresive > 30
+      ifelse random 100 > 50
       [ask prey [hatch 1 [
         set energy birth-energy
         set agresive agresive - 10
@@ -145,6 +152,21 @@ to catch-wolf-by-dog
       ]
     ]
 end
+
+
+to catch-dog-by-wolf
+  let prey one-of dogs-here
+  let predator one-of wolves-here with [gender = "male"  and energy > 10]
+  if prey != nobody and predator != nobody
+    [
+      set energy energy - 20
+      set reproduce-energy 5
+      ask prey [die]
+        set dog-killed dog-killed + 1
+        ask predator[set energy (energy + 50)]
+    ]
+end
+
 
 to eat-sheep
   let prey one-of sheep-here
@@ -179,7 +201,7 @@ to find-reproducer
     let target min-one-of turtles with [breed = my-breed and gender != my-gender] [distance myself]
     if target != nobody [
       face target
-      forward 3
+      forward 1
     ]
   ]
 end
@@ -261,13 +283,13 @@ to avoid-obstacles
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-448
+753
+292
+1061
+601
 -1
 -1
-13.0
+2.9703
 1
 10
 1
@@ -277,10 +299,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
--16
-16
+-50
+50
+-50
+50
 1
 1
 1
@@ -355,10 +377,10 @@ show-energy?
 -1000
 
 PLOT
-3
-338
-203
-488
+1
+500
+201
+650
 Totals
 time
 totals
@@ -382,7 +404,7 @@ number-of-sheep
 number-of-sheep
 0
 300
-201.0
+73.0
 1
 1
 NIL
@@ -397,7 +419,7 @@ energy-from-grass
 energy-from-grass
 0
 100
-5.0
+6.0
 1
 1
 NIL
@@ -419,15 +441,15 @@ NIL
 HORIZONTAL
 
 SLIDER
-4
-95
-176
-128
+5
+94
+177
+127
 number-of-wolves
 number-of-wolves
 0
 300
-9.0
+122.0
 1
 1
 NIL
@@ -459,17 +481,17 @@ number-of-dogs
 number-of-dogs
 0
 100
-0.0
+27.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-868
-28
-1068
-178
+215
+273
+693
+512
 Breeds
 NIL
 NIL
@@ -478,12 +500,119 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
 "sheep" 1.0 0 -14439633 true "" "plot count sheep"
 "wolves" 1.0 0 -2674135 true "" "plot count wolves"
 "dogs" 1.0 0 -1184463 true "" "plot count dogs"
+
+PLOT
+691
+10
+1129
+279
+proportion wolves to sheep
+time
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"wolves/sheep" 1.0 0 -16777216 true "" "plot (count wolves) / (count sheep)"
+
+PLOT
+214
+10
+691
+274
+types of sheep
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"white" 1.0 0 -4539718 true "" "plot (count turtles with [shape = \"sheep\" and color = white])"
+"reproduce energy" 1.0 0 -2674135 true "" "plot (count turtles with [shape = \"sheep\" and color = red])"
+"faster" 1.0 0 -13345367 true "" "plot (count turtles with [shape = \"sheep\" and color = blue])"
+"energetic" 1.0 0 -1069655 true "" "plot (count turtles with [shape = \"sheep\" and color = pink])"
+"slower" 1.0 0 -955883 true "" "plot (count turtles with [shape = \"sheep\" and color = orange])"
+"black" 1.0 0 -16645118 true "" "plot (count turtles with [shape = \"sheep\" and color = black])"
+
+MONITOR
+17
+313
+74
+358
+sheep
+count sheep
+17
+1
+11
+
+MONITOR
+78
+312
+135
+357
+wolves
+count wolves
+17
+1
+11
+
+MONITOR
+16
+365
+73
+410
+dogs
+count dogs
+17
+1
+11
+
+MONITOR
+87
+369
+141
+414
+NIL
+dog-killed
+17
+1
+11
+
+MONITOR
+15
+418
+72
+463
+NIL
+wolf-dogged
+17
+1
+11
+
+MONITOR
+83
+419
+137
+464
+NIL
+dog-born
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
